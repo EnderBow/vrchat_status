@@ -5,27 +5,28 @@ from .const import DOMAIN
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up VRChat sensors based on a config entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinators = hass.data[DOMAIN][entry.entry_id]
+    vrc_coord = coordinators["vrchat"]
+    steam_coord = coordinators["steam"]
 
     entities = []
 
-    # Add the standard status sensors
-    status_components = coordinator.data.get("status", {}).get("components", [])
-    # Create sensors for every component in the API response
+    # --- VRChat API Sensors (Mapped to vrc_coord - 1 min updates) ---
+    status_components = vrc_coord.data.get("status", {}).get("components", [])
     for comp in status_components:
-        entities.append(VRChatStatusSensor(coordinator, comp["id"], comp["name"]))
+        entities.append(VRChatStatusSensor(vrc_coord, comp["id"], comp["name"]))
 
     # Add the total online users sensor
-    entities.append(VRChatVisitsSensor(coordinator))
+    entities.append(VRChatVisitsSensor(vrc_coord))
     # Add the Steam online users sensor
-    entities.append(VRChatSteamOnlineSensor(coordinator))
+    entities.append(VRChatSteamOnlineSensor(steam_coord))
 
     # Add Cloudfront Metric Sensors
-    entities.append(VRChatMetricSensor(coordinator, "latency", "API Latency", "ms", "mdi:timer-outline"))
-    entities.append(VRChatMetricSensor(coordinator, "requests", "API Requests", "req/min", "mdi:swap-vertical"))
-    entities.append(VRChatMetricSensor(coordinator, "errors", "API Errors", "%", "mdi:alert-circle-outline"))
-    entities.append(VRChatMetricSensor(coordinator, "steam", "Steam Auth Success Rate", "%", "mdi:steam"))
-    entities.append(VRChatMetricSensor(coordinator, "oculus", "Meta Auth Success Rate", "%", "mdi:virtual-reality"))
+    entities.append(VRChatMetricSensor(vrc_coord, "latency", "API Latency", "ms", "mdi:timer-outline"))
+    entities.append(VRChatMetricSensor(vrc_coord, "requests", "API Requests", "req/min", "mdi:swap-vertical"))
+    entities.append(VRChatMetricSensor(vrc_coord, "errors", "API Errors", "%", "mdi:alert-circle-outline"))
+    entities.append(VRChatMetricSensor(vrc_coord, "steam", "Steam Auth Success Rate", "%", "mdi:steam"))
+    entities.append(VRChatMetricSensor(vrc_coord, "oculus", "Meta Auth Success Rate", "%", "mdi:virtual-reality"))
 
     async_add_entities(entities)
 
