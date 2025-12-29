@@ -8,5 +8,5 @@
   "integration_type": "service",
   "config_flow": true,
   "requirements": ["async_timeout"],
-  "version": "0.0.2"
+  "version": "0.0.3"
 }

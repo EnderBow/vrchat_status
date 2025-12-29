@@ -15,12 +15,14 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for comp in status_components:
         entities.append(VRChatStatusSensor(coordinator, comp["id"], comp["name"]))
 
-    # Add the total visits sensor
+    # Add the total online users sensor
     entities.append(VRChatVisitsSensor(coordinator))
+    # Add the Steam online users sensor
+    entities.append(VRChatSteamOnlineSensor(coordinator))
 
     # Add Cloudfront Metric Sensors
     entities.append(VRChatMetricSensor(coordinator, "latency", "API Latency", "ms", "mdi:timer-outline"))
-    entities.append(VRChatMetricSensor(coordinator, "requests", "API Requests", "req/s", "mdi:swap-vertical"))
+    entities.append(VRChatMetricSensor(coordinator, "requests", "API Requests", "req/min", "mdi:swap-vertical"))
     entities.append(VRChatMetricSensor(coordinator, "errors", "API Errors", "%", "mdi:alert-circle-outline"))
     entities.append(VRChatMetricSensor(coordinator, "steam", "Steam Auth Success Rate", "%", "mdi:steam"))
     entities.append(VRChatMetricSensor(coordinator, "oculus", "Meta Auth Success Rate", "%", "mdi:virtual-reality"))
@@ -45,9 +47,9 @@ class VRChatMetricSensor(CoordinatorEntity, SensorEntity):
         if val is None:
             return None
 
-        # Convert req/ms to req/s (val * 1000)
+        # Convert req/ms to req/min (val * 60000)
         if self._data_key == "requests":
-            return round(float(val) * 1000, 2)
+            return round(float(val) * 60000, 2)
 
         # Convert error decimal (e.g., 3.2e-06) to percentage
         if self._data_key == "errors":
@@ -77,7 +79,7 @@ class VRChatStatusSensor(CoordinatorEntity, SensorEntity):
 
 
 class VRChatVisitsSensor(CoordinatorEntity, SensorEntity):
-    """Representation of the total VRChat visits."""
+    """Representation of the total amount of Online VRChat Users."""
     def __init__(self, coordinator):
         super().__init__(coordinator)
         self._attr_name = "VRChat Online Users"
@@ -91,3 +93,19 @@ class VRChatVisitsSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         return self.coordinator.data.get("online_users")
+
+
+class VRChatSteamOnlineSensor(CoordinatorEntity, SensorEntity):
+    """Representation of VRChat players currently on Steam."""
+    def __init__(self, coordinator):
+        super().__init__(coordinator)
+        self._attr_name = "VRChat Steam Online Users"
+        self._attr_unique_id = "vrchat_steam_online_users"
+        self._attr_icon = "mdi:steam"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_native_unit_of_measurement = "users"
+
+    @property
+    def native_value(self):
+        # Pulling the renamed key from your dictionary
+        return self.coordinator.data.get("steam_online_users")

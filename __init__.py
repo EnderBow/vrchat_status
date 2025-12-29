@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import DOMAIN, CONF_URL_STATUS, CONF_URL_VISITS, CONF_URL_LATENCY, CONF_URL_REQUESTS, CONF_URL_ERRORS, CONF_URL_STEAM, CONF_URL_OCULUS
+from .const import DOMAIN, CONF_URL_STATUS, CONF_URL_VISITS, CONF_URL_LATENCY, CONF_URL_REQUESTS, CONF_URL_ERRORS, CONF_URL_STEAM, CONF_URL_OCULUS, CONF_URL_STEAM_STATS
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["sensor"]
@@ -38,9 +38,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     _LOGGER.error("Error fetching %s: %s", url, err)
                 return 0
 
+            # Fetch Steam Player Count
+            steam_players = 0
+            try:
+                async with session.get(CONF_URL_STEAM_STATS) as resp:
+                    steam_data = await resp.json()
+                    steam_players = steam_data.get("response", {}).get("player_count", 0)
+            except Exception as err:
+                _LOGGER.error("Error fetching Steam player count: %s", err)
+
             return {
                 "status": status_data,
                 "online_users": online_users,
+                "steam_online_users": steam_players,
                 "latency": await get_latest_metric(CONF_URL_LATENCY),
                 "requests": await get_latest_metric(CONF_URL_REQUESTS),
                 "errors": await get_latest_metric(CONF_URL_ERRORS),
