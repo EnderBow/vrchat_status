@@ -1,0 +1,12 @@
+{
+  "domain": "vrchat_status",
+  "name": "VRChat Status",
+  "codeowners": ["@enderbow"],
+  "dependencies": [],
+  "documentation": "https://github.com/EnderBow",
+  "iot_class": "cloud_polling",
+  "integration_type": "service",
+  "config_flow": true,
+  "requirements": ["async_timeout"],
+  "version": "0.0.2"
+}
