@@ -50,7 +50,7 @@ class VRChatMetricSensor(CoordinatorEntity, SensorEntity):
 
         # Convert Request Ratio (0.65) to Percentage (65.0%)
         if self._data_key == "requests":
-            return round(float(val) * 100, 1)
+            return round(float(val) * 100, 4)
 
         # Convert error decimal (e.g., 3.2e-06) to percentage
         if self._data_key == "errors":
