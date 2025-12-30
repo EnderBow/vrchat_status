@@ -23,7 +23,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     # Add Cloudfront Metric Sensors
     entities.append(VRChatMetricSensor(vrc_coord, "latency", "API Latency", "ms", "mdi:timer-outline"))
-    entities.append(VRChatMetricSensor(vrc_coord, "requests", "API Requests", "req/min", "mdi:swap-vertical"))
+    entities.append(VRChatMetricSensor(vrc_coord, "requests", "API Requests", "%", "mdi:swap-vertical"))
     entities.append(VRChatMetricSensor(vrc_coord, "errors", "API Errors", "%", "mdi:alert-circle-outline"))
     entities.append(VRChatMetricSensor(vrc_coord, "steam", "Steam Auth Success Rate", "%", "mdi:steam"))
     entities.append(VRChatMetricSensor(vrc_coord, "oculus", "Meta Auth Success Rate", "%", "mdi:virtual-reality"))
@@ -48,9 +48,9 @@ class VRChatMetricSensor(CoordinatorEntity, SensorEntity):
         if val is None:
             return None
 
-        # Convert req/ms to req/min (val * 60000)
+        # Convert Request Ratio (0.65) to Percentage (65.0%)
         if self._data_key == "requests":
-            return round(float(val) * 60000, 2)
+            return round(float(val) * 100, 1)
 
         # Convert error decimal (e.g., 3.2e-06) to percentage
         if self._data_key == "errors":
@@ -59,6 +59,10 @@ class VRChatMetricSensor(CoordinatorEntity, SensorEntity):
         # Auth Success: Convert ratio (e.g., 0.96) to percentage (96.38%)
         if self._data_key in ["steam", "oculus"]:
             return round(float(val) * 100, 2)
+
+        # Convert Latency Seconds (0.07) to Milliseconds (70ms)
+        if self._data_key == "latency":
+            return round(float(val) * 1000, 1)
 
         return round(float(val), 3)
 
